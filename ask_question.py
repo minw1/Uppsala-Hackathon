@@ -31,7 +31,29 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.graph import START, StateGraph
 from typing_extensions import List, TypedDict
 from langchain_core.prompts import PromptTemplate
+from langdetect import detect, DetectorFactory
+from pathlib import Path
+DetectorFactory.seed = 0  # make detection deterministic
 
+LANG_FILE = Path(__file__).parent / "languages.json"
+
+try:
+    with open(LANG_FILE, "r", encoding="utf-8") as f:
+        LANG_NAME = json.load(f)
+except FileNotFoundError:
+    LANG_NAME = {} 
+
+def last_human_text(state) -> str | None:
+    for msg in reversed(state["messages"]):
+        if getattr(msg, "type", None) == "human" or getattr(msg, "role", None) == "user":
+            return getattr(msg, "content", "") or (msg.get("content") if isinstance(msg, dict) else "")
+    return None
+
+def detect_lang_code(text: str) -> str:
+    try:
+        return detect(text)
+    except Exception:
+        return "en"  #swap this to swedish
 
 graph_builder = StateGraph(MessagesState)
 
@@ -44,9 +66,6 @@ def retrieve(query: str):
         for doc in retrieved_docs
     )
     return serialized, retrieved_docs
-
-
-
 
 # Step 1: Generate an AIMessage that may include a tool-call to be sent.
 def query_or_respond(state: MessagesState):
@@ -76,11 +95,11 @@ def generate(state: MessagesState):
     docs_content = "\n\n".join(doc.content for doc in tool_messages)
     system_message_content = (
         "You are an assistant for question-answering tasks. "
-        "Use the following pieces of retrieved context to answer "
-        "the question. If you don't know the answer, say that you "
-        "don't know. Use three sentences maximum and keep the "
-        "answer concise. The context documents are in Swedish, but it is essential that you answer in the same language that the question is in."
-        "\n\n"
+        "Use the retrieved context to answer the question. "
+        "If the answer is not present in the context, say you don't know. "
+        "Keep answers concise (≤3 sentences). "
+        f"Always respond in the user's language. Detected language: {lang_label} ({lang_code}).\n\n"
+        "Context:\n"
         f"{docs_content}"
     )
     conversation_messages = [

@@ -1,41 +1,47 @@
 import os
 from typing import List
-
 import streamlit as st
-from ask_question import ask_question 
+from ask_question import ask_question
 
 st.set_page_config(page_title="RAG Chatbot", page_icon="💬")
 st.title("RAG Chatbot")
 
-# Optional heads-up if keys are needed by your backend
 if not os.environ.get("GOOGLE_API_KEY"):
     st.info("If your backend uses Google APIs, set GOOGLE_API_KEY before running.")
 
-# Minimal in-memory chat history
+# Chat history
 if "messages" not in st.session_state:
     st.session_state.messages: List[dict] = []
 
-# Render history
+# 1) Render existing history
 for m in st.session_state.messages:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
 
-# User input
+# 2) Handle new input (captured this run)
 prompt = st.chat_input("Ask about your documents…")
 if prompt:
-    # Show user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    # Put the user message in a short-lived 'pending' slot so we can show it immediately
+    st.session_state["pending_user"] = prompt
 
-    # Get answer from backend
+# 3) If there is a pending user message, show it immediately and get the answer
+if st.session_state.get("pending_user") is not None:
+    pending = st.session_state["pending_user"]
+
+    # Show the user's message right away (before RAG finishes)
+    with st.chat_message("user"):
+        st.markdown(pending)
+
+    # Compute the answer with a spinner; don't write final text yet
     with st.chat_message("assistant"):
         with st.spinner("Thinking…"):
             try:
-                answer = ask_question(prompt)
+                answer = ask_question(pending)
             except Exception as e:
                 answer = f"Sorry, something went wrong: {e}"
-        st.markdown(answer)
-        st.session_state.messages.append({"role": "assistant", "content": answer})
 
-st.caption("Frontend only · talks to your RAG backend via answer_question()")
+    # Commit both to history, clear pending, and rerun so they render once via the loop
+    st.session_state.messages.append({"role": "user", "content": pending})
+    st.session_state.messages.append({"role": "assistant", "content": answer})
+    st.session_state["pending_user"] = None
+    st.rerun()
