@@ -1,4 +1,8 @@
 import dotenv
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_chroma import Chroma
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chat_models import init_chat_model
 from langchain_chroma import Chroma
 from langchain_core.messages import SystemMessage, ToolMessage, HumanMessage
@@ -30,6 +34,37 @@ vector_store = Chroma(
     embedding_function=embeddings,
     persist_directory="./chroma_hackathon_db",  # Where to save data locally, remove if not necessary
 )
+import bs4
+from langchain import hub
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langgraph.graph import START, StateGraph
+from typing_extensions import List, TypedDict
+from langchain_core.prompts import PromptTemplate
+from langdetect import detect, DetectorFactory
+from pathlib import Path
+DetectorFactory.seed = 0  # make detection deterministic
+
+LANG_FILE = Path(__file__).parent / "languages.json"
+
+try:
+    with open(LANG_FILE, "r", encoding="utf-8") as f:
+        LANG_NAME = json.load(f)
+except FileNotFoundError:
+    LANG_NAME = {}
+
+def last_human_text(state) -> str | None:
+    for msg in reversed(state["messages"]):
+        if getattr(msg, "type", None) == "human" or getattr(msg, "role", None) == "user":
+            return getattr(msg, "content", "") or (msg.get("content") if isinstance(msg, dict) else "")
+    return None
+
+def detect_lang_code(text: str) -> str:
+    try:
+        return detect(text)
+    except Exception:
+        return "en"  #swap this to swedish
 
 graph_builder = StateGraph(MessagesState)
 
