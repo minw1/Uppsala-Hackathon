@@ -24,10 +24,10 @@ vector_store = Chroma(
 
 # load web paths from json
 try:
-    with open("web_paths.json", "r") as f:
+    with open("links.json", "r") as f:
         web_paths = json.load(f)
 except FileNotFoundError:
-    print("web_paths.json file not found. Please create the file with a list of URLs to scrape.")
+    print("links.json file not found. Please create the file with a list of URLs to scrape.")
     web_paths = ["https://www.uppsala.se/stod-och-omsorg/funktionsnedsattning/stod-och-omsorg-for-dig-med-funktionsnedsattning/", "https://www.uppsala.se/kampanjsidor/en-manad-for-psykisk-halsa/"]
 
 loader = WebBaseLoader(
