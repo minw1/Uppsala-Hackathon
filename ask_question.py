@@ -1,19 +1,20 @@
 import dotenv
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_chroma import Chroma
-from langchain_community.document_loaders import WebBaseLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chat_models import init_chat_model
 from langchain_chroma import Chroma
-from langchain_core.messages import SystemMessage, ToolMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.tools import tool
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langgraph.graph import END
 from langgraph.graph import MessagesState
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt import tools_condition
-from langgraph.graph import StateGraph
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import StateGraph
+from langdetect import detect, DetectorFactory
+from pathlib import Path
+import json
+
+DetectorFactory.seed = 0  # make detection deterministic
 
 dotenv.load_dotenv()
 
@@ -34,17 +35,7 @@ vector_store = Chroma(
     embedding_function=embeddings,
     persist_directory="./chroma_hackathon_db",  # Where to save data locally, remove if not necessary
 )
-import bs4
-from langchain import hub
-from langchain_community.document_loaders import WebBaseLoader
-from langchain_core.documents import Document
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langgraph.graph import START, StateGraph
-from typing_extensions import List, TypedDict
-from langchain_core.prompts import PromptTemplate
-from langdetect import detect, DetectorFactory
-from pathlib import Path
-DetectorFactory.seed = 0  # make detection deterministic
+
 
 LANG_FILE = Path(__file__).parent / "languages.json"
 
@@ -64,7 +55,8 @@ def detect_lang_code(text: str) -> str:
     try:
         return detect(text)
     except Exception:
-        return "en"  #swap this to swedish
+        return "en"  # TODO: swap this to swedish
+
 
 graph_builder = StateGraph(MessagesState)
 
