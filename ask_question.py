@@ -13,6 +13,7 @@ from langgraph.graph import StateGraph
 from langdetect import detect, DetectorFactory
 from pathlib import Path
 import json
+#merge fixed?
 
 DetectorFactory.seed = 0  # make detection deterministic
 
@@ -86,49 +87,6 @@ def generate(state: MessagesState):
 # Step 2: Execute the retrieval.
 tools = ToolNode([retrieve])
 
-<<<<<<< HEAD
-# Step 3: Generate a response using the retrieved content.
-def generate(state: MessagesState):
-    """Generate answer."""
-    # Get generated ToolMessages
-    recent_tool_messages = []
-    for message in reversed(state["messages"]):
-        if message.type == "tool":
-            recent_tool_messages.append(message)
-        else:
-            break
-    tool_messages = recent_tool_messages[::-1]
-
-    # Format into prompt
-    docs_content = "\n\n".join(doc.content for doc in tool_messages)
-    system_message_content = (
-        "You are an assistant for question-answering tasks. "
-        "Use the following pieces of retrieved context to answer "
-        "the question. If you don't know the answer, say that you "
-        "don't know. Use three sentences maximum and keep the "
-        "answer concise. The context documents are in Swedish, but it is essential that you answer in the same language that the question is in."
-        "\n\n"
-        f"{docs_content}"
-        "Remember: Answer in the same language as the user's question"
-    )
-    conversation_messages = [
-        message
-        for message in state["messages"]
-        if message.type in ("human", "system")
-        or (message.type == "ai" and not message.tool_calls)
-    ]
-
-    prompt = [SystemMessage(system_message_content)] + conversation_messages + [SystemMessage("It is of extreme importance that you answer in the same language as the human user's query.")]
-
-    # Run
-    response = llm.invoke(prompt)
-    return {"messages": [response]}
-
-
-graph_builder.add_node(query_or_respond)
-graph_builder.add_node(tools)
-=======
->>>>>>> dd477141afbc872d91495e6322f1c659ac3ee753
 graph_builder.add_node(generate)
 graph_builder.add_node(tools)
 
@@ -154,12 +112,3 @@ def ask_question(question):
             HumanMessage(question)]},
         config=config)
     return response['messages'][-1].content
-
-<<<<<<< HEAD
-def get_response(q):
-    return graph.invoke({"messages": [{"role": "user", "content": q}]},config=config)
-=======
-
-# print(ask_question("What mental health resources are available in Uppsala? Please respond in English."))
-# print(ask_question("Can you point me to a specific point of contact for mental health support?"))
->>>>>>> dd477141afbc872d91495e6322f1c659ac3ee753
