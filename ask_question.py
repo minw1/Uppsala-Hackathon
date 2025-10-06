@@ -38,7 +38,7 @@ graph_builder = StateGraph(MessagesState)
 @tool(response_format="content_and_artifact")
 def retrieve(query: str):
     """Retrieve information related to a query."""
-    retrieved_docs = vector_store.similarity_search(query, k=5)
+    retrieved_docs = vector_store.similarity_search(query, k=2)
     serialized = "\n\n".join(
         (f"Source: {doc.metadata}\nContent: {doc.page_content}")
         for doc in retrieved_docs
@@ -82,6 +82,7 @@ def generate(state: MessagesState):
         "answer concise. The context documents are in Swedish, but it is essential that you answer in the same language that the question is in."
         "\n\n"
         f"{docs_content}"
+        "Remember: Answer in the same language as the user's question"
     )
     conversation_messages = [
         message
@@ -89,7 +90,8 @@ def generate(state: MessagesState):
         if message.type in ("human", "system")
         or (message.type == "ai" and not message.tool_calls)
     ]
-    prompt = [SystemMessage(system_message_content)] + conversation_messages
+
+    prompt = [SystemMessage(system_message_content)] + conversation_messages + [SystemMessage("It is of extreme importance that you answer in the same language as the human user's query.")]
 
     # Run
     response = llm.invoke(prompt)
@@ -117,11 +119,12 @@ memory = MemorySaver()
 graph = graph_builder.compile(checkpointer=memory)
 
 # Specify an ID for the thread
-config = {"configurable": {"thread_id": "c55123"}}
+config = {"configurable": {"thread_id": "adz123"}}
 
 
 def ask_question(question):
     response = graph.invoke({"messages": [{"role": "user", "content": question}]},config=config)
     return response['messages'][-1].text()
 
-#print(ask_question("What mental health resources are available in Uppsala?"))
+def get_response(q):
+    return graph.invoke({"messages": [{"role": "user", "content": q}]},config=config)
