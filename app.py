@@ -9,9 +9,11 @@ st.title("RAG Chatbot")
 if not os.environ.get("GOOGLE_API_KEY"):
     st.info("If your backend uses Google APIs, set GOOGLE_API_KEY before running.")
 
-# Chat history
-if "messages" not in st.session_state:
-    st.session_state.messages: List[dict] = []
+
+if "messages" not in st.session_state: 
+    st.session_state.messages = [ { "role": "assistant", "content": "Hej, I'm your Support Guide Chatbot from the municipality of Uppsala! I can help you "
+                                "find information about municipal support and servies - like activities, contact "
+                                "persons or applications. Vi kan också chatta på svenska!" } ]
 
 # 1) Render existing history
 for m in st.session_state.messages:
