@@ -21,7 +21,7 @@ for m in st.session_state.messages:
         st.markdown(m["content"])
 
 # 2) Handle new input (captured this run)
-prompt = st.chat_input("Ask about your documents…")
+prompt = st.chat_input("Ask your questions here…")
 if prompt:
     # Put the user message in a short-lived 'pending' slot so we can show it immediately
     st.session_state["pending_user"] = prompt
