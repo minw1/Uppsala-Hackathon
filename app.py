@@ -3,8 +3,8 @@ from typing import List
 import streamlit as st
 from ask_question import ask_question
 
-st.set_page_config(page_title="RAG Chatbot", page_icon="💬")
-st.title("RAG Chatbot")
+st.set_page_config(page_title="Chat Uppsala", page_icon="💬")
+st.title("Chat Uppsala")
 
 if not os.environ.get("GOOGLE_API_KEY"):
     st.info("If your backend uses Google APIs, set GOOGLE_API_KEY before running.")

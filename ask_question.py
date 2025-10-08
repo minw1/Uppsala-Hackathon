@@ -24,8 +24,9 @@ system_prompt = (
     "support system in Uppsala. Individuals should be able to search for and find relevant "
     "information based on their needs and also receive guidance on what the next step might be, e.g., "
     "applying for a specific measure or contacting a person/organization to find out more. If you don't know answer "
-    "answer, say that you don't know. Use three sentences maximum and keep the  answer concise. The context documents "
-    "are in Swedish, but it is essential that you answer in the same language that the question is in."
+    "answer, say that you don't know. Always provide your sources. Use three sentences maximum and keep the  answer "
+    "concise. The context documents are in Swedish, but it is essential that you answer in the same language that the "
+    "question is in."
 )
 is_first_question = True
 
@@ -63,7 +64,7 @@ def retrieve(query: str):
     """Retrieve information related to a query."""
     retrieved_docs = vector_store.similarity_search(query, k=2)
     serialized = "\n\n".join(
-        (f"Source: {doc.metadata}\nContent: {doc.page_content}")
+        (f"Source: {doc.metadata.get('source')}\nContent: {doc.page_content}")
         for doc in retrieved_docs
     )
     return serialized, retrieved_docs
