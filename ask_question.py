@@ -114,7 +114,29 @@ def ask_question(question: str):
                                 "persons or applications. Vi kan också chatta på svenska!"),
                       human_message] if is_first_question else [human_message]},
         config=config)
-    return response['messages'][-1].content
+    answer = response['messages'][-1].content
+
+    # Extract any retrieval results stored as tool artifacts
+    retrieved_urls = []
+    for msg in response['messages']:
+        if hasattr(msg, "artifact") and msg.artifact:
+            # artifact is what your retrieve() tool returned as 'retrieved_docs'
+            docs = msg.artifact
+            for d in docs:
+                if isinstance(d.metadata, dict):
+                    # Try common metadata fields for URLs
+                    url = d.metadata.get("source") or d.metadata.get("url")
+                    if url:
+                        retrieved_urls.append(url)
+
+    # Remove duplicates
+    retrieved_urls = list(set(retrieved_urls))
+
+    # Append URLs (if any) to the answer text
+    if retrieved_urls:
+        answer += "\n\nSources:\n" + "\n".join(retrieved_urls)
+
+    return answer
 
 
 # print(ask_question("ye kaise kaam krta hai"))
