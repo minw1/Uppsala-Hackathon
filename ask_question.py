@@ -104,7 +104,7 @@ config = {"configurable": {"thread_id": "adz123"}}
 
 def ask_question(question: str):
     question_lang = detect(question)
-    print(f'Please answer in {LANG_NAME[question_lang] if question_lang in LANG_NAME else "Swedish"}.')
+    # print(f'Please answer in {LANG_NAME[question_lang] if question_lang in LANG_NAME else "Swedish"}.')
     human_message = HumanMessage(question + f'\nPlease answer in {LANG_NAME[question_lang] if question_lang in LANG_NAME else "Swedish"}.')
     # noinspection PyTypeChecker
     response = graph.invoke(
@@ -117,5 +117,6 @@ def ask_question(question: str):
     return response['messages'][-1].content
 
 
-print(ask_question("ye kaise kaam krta hai"))
-print(ask_question("Pouvez-vous me donner un contact concret pour obtenir du soutien en santé mentale ?"))
+# print(ask_question("ye kaise kaam krta hai"))
+# print(ask_question("Pouvez-vous me donner un contact concret pour obtenir du soutien en santé mentale ?"))
+
