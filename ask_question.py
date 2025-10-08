@@ -24,13 +24,13 @@ system_prompt = (
     "support system in Uppsala. Individuals should be able to search for and find relevant "
     "information based on their needs and also receive guidance on what the next step might be, e.g., "
     "applying for a specific measure or contacting a person/organization to find out more. If you don't know answer "
-    "answer, say that you don't know. Use three sentences maximum and keep the  answer concise. The context documents "
-    "are in Swedish, but it is essential that you answer in the same language that the question is in. If the "
-    "question is in English, answer in English."
+    "answer, say that you don't know. Always provide your sources. Use three sentences maximum and keep the  answer "
+    "concise. The context documents are in Swedish, but it is essential that you answer in the same language that the "
+    "question is in."
 )
 is_first_question = True
 
-llm = init_chat_model("gemini-2.5-flash", model_provider="google_genai")
+llm = init_chat_model("gemini-2.5-pro", model_provider="google_genai")
 embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
 vector_store = Chroma(
     collection_name="support_collection",
@@ -64,7 +64,7 @@ def retrieve(query: str):
     """Retrieve information related to a query."""
     retrieved_docs = vector_store.similarity_search(query, k=2)
     serialized = "\n\n".join(
-        (f"Source: {doc.metadata}\nContent: {doc.page_content}")
+        (f"Source: {doc.metadata.get('source')}\nContent: {doc.page_content}")
         for doc in retrieved_docs
     )
     return serialized, retrieved_docs
@@ -111,7 +111,7 @@ def ask_question(question: str):
         {"messages": [SystemMessage(system_prompt),
                       AIMessage("Hej, I'm your Support Guide Chatbot from the municipality of Uppsala! I can help you "
                                 "find information about municipal support and servies - like activities, contact "
-                                "persons or applications. Vi kan också chatta på svenska!"),
+                                "persons or applications. Vi kan också chatta på svenska - or any other language!"),
                       human_message] if is_first_question else [human_message]},
         config=config)
     return response['messages'][-1].content
