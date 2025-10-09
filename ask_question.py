@@ -62,7 +62,7 @@ graph_builder = StateGraph(MessagesState)
 @tool(response_format="content_and_artifact")
 def retrieve(query: str):
     """Retrieve information related to a query."""
-    retrieved_docs = vector_store.similarity_search(query, k=2)
+    retrieved_docs = vector_store.similarity_search(query, k=3)
     serialized = "\n\n".join(
         (f"Source: {doc.metadata.get('source')}\nContent: {doc.page_content}")
         for doc in retrieved_docs
@@ -114,4 +114,14 @@ def ask_question(question: str):
                                 "persons or applications. Vi kan också chatta på svenska - or any other language!"),
                       human_message] if is_first_question else [human_message]},
         config=config)
-    return response['messages'][-1].content
+    answer = response['messages'][-1].content
+
+    return answer
+
+
+# print(ask_question("ye kaise kaam krta hai"))
+# print(ask_question("Pouvez-vous me donner un contact concret pour obtenir du soutien en santé mentale ?"))
+"""
+Question
+Hey, I want to get help with integrating my child into school. My husband and I are not from Sweden. Are there any resources available?
+"""
